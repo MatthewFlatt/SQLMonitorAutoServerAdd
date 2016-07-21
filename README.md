@@ -9,9 +9,11 @@ Standalone machine or cluster determined by 0 or 1 after the server name, split 
 
 Examples:
 Standalone machine:
+
 machinename,0
 
 Cluster:
+
 clustername,1
 
 This script must be run on the machine on which the SQL Monitor Base Monitor service is installed, and be able to contact the SQL Monitor database.
