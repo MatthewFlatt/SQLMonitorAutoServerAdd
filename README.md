@@ -1,5 +1,5 @@
-# SQLMonitorAutoServerAdd
-Add SQL Server machines to SQL Monitor from a file.
+# Add SQL Server machines to SQL Monitor from a file.
+
 
 Use this script to take a list of SQL Server machines in a file, and add them to SQL Monitor.
 
