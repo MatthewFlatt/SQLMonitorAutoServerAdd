@@ -1,0 +1,3 @@
+machinename,0
+cluster1,1
+cluster2,1
