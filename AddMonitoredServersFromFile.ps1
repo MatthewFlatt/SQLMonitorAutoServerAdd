@@ -19,14 +19,41 @@ try{
         $clusterName = $parts[0]
         # 1 for a cluster, 0 for a single machine
         $isCluster = $parts[1]
+		# Wrap group name in []
+        $groupName = "[" + $parts[2] + "]"
+		# Get a Guid for new machine
+        $clusterId = Invoke-Sqlcmd "SELECT NEWID() AS ClusterId" -ServerInstance $sqlMonitorDatabaseServer -Database $sqlMonitorDatabase -Username $username -Password $password
+		# Pull out the Guid
+        $clusterGuid = $clusterId.ClusterId.Guid
 
-        # Insert row into SQL Montitor database
+        # Insert row into SQL Monitor database
         Invoke-Sqlcmd "INSERT INTO [settings].[Clusters]
             ([Id], [CreatedDate], [ModifiedDate], [IsValid], [IsSuspended], [CredentialsDiscriminator], [User], [Domain], [Password], [Name], [IsCluster],
             [IsAddressDetected], [NodeCount], [RequestedLicenceLevel], [EffectiveLicenceLevel], [MW_IsEnabled], [MW_Start], [MW_Duration], [MW_Monday], [MW_Tuesday],
             [MW_Wednesday], [MW_Thursday], [MW_Friday], [MW_Saturday], [MW_Sunday])
                 VALUES
-            (NEWID(), utils.DateTimeToTicks(GETDATE()), utils.DateTimeToTicks(GETDATE()), 1, 0, 0, NULL, NULL, NULL, '$clusterName', '$isCluster', 1, 1, 1, 1, 0, NULL, NULL, 0, 0, 0, 0, 0, 0, 0);" -ServerInstance $sqlMonitorDatabaseServer -Database $sqlMonitorDatabase -Username $username -Password $password
+            ('$clusterGuid', utils.DateTimeToTicks(GETDATE()), utils.DateTimeToTicks(GETDATE()), 1, 0, 0, NULL, NULL, NULL, '$clusterName', '$isCluster', 1, 1, 1, 1, 0, NULL, NULL, 0, 0, 0, 0, 0, 0, 0);" -ServerInstance $sqlMonitorDatabaseServer -Database $sqlMonitorDatabase -Username $username -Password $password
+
+		# See if group exists
+        $groupId = Invoke-Sqlcmd "SELECT GroupId FROM [settings].[Group] WHERE NAME = '$groupName'" -ServerInstance $sqlMonitorDatabaseServer -Database $sqlMonitorDatabase -Username $username -Password $password
+
+		# If group does not exist
+        if ([string]::IsNullOrWhiteSpace($groupId))
+        {
+			# Create new Guid for group and create group
+            $groupId = Invoke-Sqlcmd "SELECT NEWID() AS GroupId" -ServerInstance $sqlMonitorDatabaseServer -Database $sqlMonitorDatabase -Username $username -Password $password
+            $groupGuid = $groupId.GroupId.Guid  
+            Invoke-Sqlcmd "INSERT INTO [settings].[Group] VALUES ('$groupGuid', '$groupname')" -ServerInstance $sqlMonitorDatabaseServer -Database $sqlMonitorDatabase -Username $username -Password $password 
+             
+        }
+
+        $groupGuid = $groupId.GroupId.Guid
+		# Add new machine to group
+        Invoke-Sqlcmd "INSERT INTO [settings].[GroupMachines]
+            ([GroupId], [ClusterId]) 
+                VALUES
+            ('$groupGuid', '$clusterGuid')" -ServerInstance $sqlMonitorDatabaseServer -Database $sqlMonitorDatabase -Username $username -Password $password
+
     }
 }
 finally {

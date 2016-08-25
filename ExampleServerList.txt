@@ -1,3 +1,3 @@
-machinename,0
-cluster1,1
-cluster2,1
+machinename,0,groupname
+cluster1,1,groupname
+cluster2,1,groupname
