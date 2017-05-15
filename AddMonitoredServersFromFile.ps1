@@ -16,7 +16,7 @@ try{
         if ($line -eq $null) { break }
         # Split line on , - server name and whether cluster or not
         $parts = $line.Split(',')
-        $clusterName = $parts[0]
+        $clusterName = $parts[0].ToLower()
         # 1 for a cluster, 0 for a single machine
         $isCluster = $parts[1]
 		# Wrap group name in []
